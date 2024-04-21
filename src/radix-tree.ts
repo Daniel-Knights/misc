@@ -64,11 +64,11 @@ class RadixTree {
       }
 
       if (key.length > matchingPrefix.length) {
-        // Split `key` tail and set as child node of prefix
+        // Create new node for `matchingPrefix` and set `key` and `word` tails as children
         const newNode = new RadixTreeNode();
 
         newNode.addChild(key.replace(matchingPrefix, ""), nd.clone());
-        newNode.addChild(word.replace(matchingPrefix, ""), nd.clone());
+        newNode.addChild(word.replace(matchingPrefix, ""), new RadixTreeNode());
 
         curr.set(matchingPrefix, newNode);
         curr.delete(key);
@@ -107,6 +107,7 @@ const tree = new RadixTree(
 );
 
 tree.insert("call", "all");
+tree.insert("allele");
 
 [...tree.root.entries()].forEach(([word, nd]) => {
   console.log(word);
