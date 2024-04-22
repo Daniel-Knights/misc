@@ -1,3 +1,5 @@
+import fs from "fs";
+
 function getMatchingPrefix(str1: string, str2: string) {
   if (str1 === str2) return str1;
 
@@ -34,16 +36,24 @@ class RadixTreeNode {
   clone() {
     return new RadixTreeNode(new Map([...this.children]));
   }
+
+  toObject(): object {
+    const childEntries = [...this.children.entries()].map(([key, nd]) => {
+      return [key, nd.toObject()];
+    });
+
+    return Object.fromEntries(childEntries);
+  }
 }
 
 class RadixTree {
-  root = new Map<string, RadixTreeNode>();
+  root = new RadixTreeNode();
 
   constructor(...words: string[]) {
     this.insert(...words);
   }
 
-  #insert(word: string, curr = this.root) {
+  #insert(word: string, curr = this.root.children) {
     if (word === "" || curr.get(word)) return;
 
     if (curr.size === 0) {
@@ -86,6 +96,10 @@ class RadixTree {
       this.#insert(word);
     });
   }
+
+  toString() {
+    return JSON.stringify(this.root.toObject(), null, 2);
+  }
 }
 
 // Usage
@@ -109,7 +123,13 @@ const tree = new RadixTree(
 tree.insert("call", "all");
 tree.insert("allele");
 
-[...tree.root.entries()].forEach(([word, nd]) => {
-  console.log(word);
-  console.log(nd);
-});
+// Output
+
+console.log(tree);
+
+// [...tree.root.children.entries()].forEach(([word, nd]) => {
+//   console.log(word);
+//   console.log(nd);
+// });
+
+fs.writeFileSync("out/radix-tree.json", tree.toString());
