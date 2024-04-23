@@ -49,8 +49,8 @@ class RadixTreeNode {
 class RadixTree {
   root = new RadixTreeNode();
 
-  constructor(...words: string[]) {
-    this.insert(...words);
+  constructor(words: string[]) {
+    this.insert(words);
   }
 
   #insert(word: string, curr = this.root.children) {
@@ -68,7 +68,7 @@ class RadixTree {
 
       if (key === matchingPrefix) {
         // Add `word` tail as child node
-        this.#insert(word.replace(matchingPrefix, ""), curr.get(key)?.children);
+        this.#insert(word.replace(matchingPrefix, ""), nd.children);
 
         return;
       }
@@ -91,10 +91,40 @@ class RadixTree {
     curr.set(word, new RadixTreeNode());
   }
 
-  insert(...words: string[]) {
+  insert(words: string[]) {
     words.forEach((word) => {
       this.#insert(word);
     });
+  }
+
+  #findNode(
+    word: string,
+    curr = this.root.children
+  ): [string, RadixTreeNode] | undefined {
+    if (curr.has(word)) return [word, curr.get(word)!];
+
+    for (const [key, nd] of curr.entries()) {
+      const matchingPrefix = getMatchingPrefix(key, word);
+      if (matchingPrefix.length === 0) continue;
+
+      if (matchingPrefix.length >= word.length) {
+        return [key, nd];
+      }
+
+      if (matchingPrefix.length < word.length) {
+        return this.#findNode(word.replace(matchingPrefix, ""), nd.children);
+      }
+    }
+
+    return;
+  }
+
+  findNode(word: string) {
+    return this.#findNode(word);
+  }
+
+  deleteNode(word: string) {
+    // TODO
   }
 
   toString() {
@@ -104,7 +134,7 @@ class RadixTree {
 
 // Usage
 
-const tree = new RadixTree(
+const tree = new RadixTree([
   "apple",
   "app",
   "app",
@@ -117,15 +147,17 @@ const tree = new RadixTree(
   "b",
   "c",
   "d",
-  ""
-);
+  "",
+]);
 
-tree.insert("call", "all");
-tree.insert("allele");
+tree.insert(["call", "all"]);
+tree.insert(["allele"]);
 
 // Output
 
 console.log(tree);
+
+console.log(tree.findNode("b"));
 
 // [...tree.root.children.entries()].forEach(([word, nd]) => {
 //   console.log(word);
