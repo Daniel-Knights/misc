@@ -97,10 +97,7 @@ class RadixTree {
     });
   }
 
-  #findNode(
-    word: string,
-    curr = this.root.children
-  ): [string, RadixTreeNode] | undefined {
+  findNode(word: string, curr = this.root.children): [string, RadixTreeNode] | undefined {
     if (curr.has(word)) return [word, curr.get(word)!];
 
     for (const [key, nd] of curr.entries()) {
@@ -112,22 +109,18 @@ class RadixTree {
       }
 
       if (matchingPrefix.length < word.length) {
-        return this.#findNode(word.replace(matchingPrefix, ""), nd.children);
+        return this.findNode(word.replace(matchingPrefix, ""), nd.children);
       }
     }
 
     return;
   }
 
-  findNode(word: string) {
-    return this.#findNode(word);
-  }
-
-  #deleteNode(word: string, curr = this.root.children): boolean {
+  deleteNode(word: string, curr = this.root.children): boolean {
     function del(foundNode: RadixTreeNode) {
-      if (foundNode.isEnd) {
-        return curr.delete(word);
-      } else if (foundNode.children.size === 1) {
+      if (foundNode.isEnd) return curr.delete(word);
+
+      if (foundNode.children.size === 1) {
         const [childKey, childNode] = [...foundNode.children.entries()][0]!;
 
         const newKey = word + childKey;
@@ -136,9 +129,9 @@ class RadixTree {
         curr.set(newKey, childNode);
 
         return true;
-      } else {
-        return false;
       }
+
+      return false;
     }
 
     if (curr.has(word)) {
@@ -154,15 +147,11 @@ class RadixTree {
       }
 
       if (matchingPrefix.length < word.length) {
-        return this.#deleteNode(word.replace(matchingPrefix, ""), nd.children);
+        return this.deleteNode(word.replace(matchingPrefix, ""), nd.children);
       }
     }
 
     return false;
-  }
-
-  deleteNode(word: string) {
-    return this.#deleteNode(word);
   }
 
   toString() {
