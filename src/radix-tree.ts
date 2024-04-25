@@ -123,8 +123,46 @@ class RadixTree {
     return this.#findNode(word);
   }
 
+  #deleteNode(word: string, curr = this.root.children): boolean {
+    function del(foundNode: RadixTreeNode) {
+      if (foundNode.isEnd) {
+        return curr.delete(word);
+      } else if (foundNode.children.size === 1) {
+        const [childKey, childNode] = [...foundNode.children.entries()][0]!;
+
+        const newKey = word + childKey;
+
+        curr.delete(word);
+        curr.set(newKey, childNode);
+
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    if (curr.has(word)) {
+      return del(curr.get(word)!);
+    }
+
+    for (const [key, nd] of curr.entries()) {
+      const matchingPrefix = getMatchingPrefix(key, word);
+      if (matchingPrefix.length === 0) continue;
+
+      if (matchingPrefix.length === word.length) {
+        return del(nd);
+      }
+
+      if (matchingPrefix.length < word.length) {
+        return this.#deleteNode(word.replace(matchingPrefix, ""), nd.children);
+      }
+    }
+
+    return false;
+  }
+
   deleteNode(word: string) {
-    // TODO
+    return this.#deleteNode(word);
   }
 
   toString() {
@@ -152,16 +190,17 @@ const tree = new RadixTree([
 
 tree.insert(["call", "all"]);
 tree.insert(["allele"]);
+tree.deleteNode("alle");
 
 // Output
 
-console.log(tree);
+// console.log(tree);
 
-console.log(tree.findNode("b"));
+// console.log(tree.findNode("b"));
 
-// [...tree.root.children.entries()].forEach(([word, nd]) => {
-//   console.log(word);
-//   console.log(nd);
-// });
+[...tree.root.children.entries()].forEach(([word, nd]) => {
+  console.log(word);
+  console.log(nd);
+});
 
 fs.writeFileSync("out/radix-tree.json", tree.toString());
